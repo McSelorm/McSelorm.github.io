@@ -173,7 +173,8 @@
           <label>What will the money be used for?<input name="use_of_money" required maxlength="200" placeholder="e.g. buy a freezer, more stock"></label>
           <label class="full">What will the investor get back? <small>For example: a share of profits, or paying back the money plus extra over 12 months.</small><textarea name="investor_gets" required maxlength="800" style="min-height:70px"></textarea></label>
           <label>WhatsApp / phone number<input name="phone" type="tel" required maxlength="30" placeholder="e.g. 024 123 4567"></label>
-          <label>Full name on your Ghana Card <small>Only Selorm sees this. We never ask for a photo of your card.</small><input name="ghana_card_name" required maxlength="100"></label>
+          <label>Full name on your Ghana Card <small>Only Selorm sees this.</small><input name="ghana_card_name" required maxlength="100"></label>
+          <label class="full">Upload your Ghana Card or other ID <small>A clear photo or PDF, up to 5 MB. 🔒 It is kept in a locked, private folder. Only you and Selorm can open it, and it is <b>never</b> shown on the website.</small><input name="id_card" id="idFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required></label>
           <label class="check full"><input type="checkbox" name="show_phone"> If my business is approved, you can show my WhatsApp number on this page so investors can call me.</label>
           <label class="check full"><input type="checkbox" name="agree_id_check" required> I agree to show my Ghana Card to Selorm in person or on a video call before any investment.</label>
           <label class="check full"><input type="checkbox" id="agree" required> I confirm the information is true, and I agree that my business name, type, town, story and amount needed can be shown on this page if approved.</label>
@@ -219,7 +220,7 @@
       <ul>
         <li>This site does <b>not</b> take or hold any money. No payment happens here.</li>
         <li>We will <b>never</b> ask you to pay a fee to join or be listed.</li>
-        <li>We will <b>never</b> ask for a photo of your Ghana Card or your passwords.</li>
+        <li>We will <b>never</b> ask for your password or any payment. Your ID card is only uploaded on this site, never sent by WhatsApp or email.</li>
         <li>Before any money moves, meet in person, check ID and the business, and sign a written agreement.</li>
         <li>Being listed here is not a promise that anyone will invest. Investing has risk, and money can be lost.</li>
       </ul>
@@ -298,7 +299,7 @@
     if(opts.private){
       const p=el('div','private');
       p.append(el('div',null,'📞 '+b.phone+(b.show_phone?' (can be shown)':' (private)')));
-      p.append(el('div',null,'🪪 Ghana Card name: '+b.ghana_card_name));
+      p.append(el('div',null,'🪪 Ghana Card name: '+b.ghana_card_name+(b.id_card_path?' · ID uploaded 🔒':' · no ID uploaded')));
       if(b.owner_email) p.append(el('div',null,'✉️ '+b.owner_email));
       p.append(el('div','stage','Posted '+ago(b.created_at)));
       card.append(p);
@@ -414,12 +415,25 @@
       amount:Math.max(1,Math.floor(+f.get('amount')||0)), use_of_money:f.get('use_of_money').trim(), investor_gets:f.get('investor_gets').trim(),
       phone:f.get('phone').trim(), ghana_card_name:f.get('ghana_card_name').trim(), show_phone:!!f.get('show_phone'), agree_id_check:!!f.get('agree_id_check')
     };
-    send.disabled=true; send.textContent='Posting…';
+    const file=$('idFile').files[0];
+    const okTypes=['image/jpeg','image/png','image/webp','application/pdf'];
+    if(!file){ show(msg,'bad','Please upload a photo of your Ghana Card or other ID.'); return; }
+    if(!okTypes.includes(file.type)){ show(msg,'bad','Your ID must be a photo (JPG, PNG, WEBP) or a PDF.'); return; }
+    if(file.size>5*1024*1024){ show(msg,'bad','Your ID file is too big. Please use a file smaller than 5 MB.'); return; }
+    send.disabled=true; send.textContent='Uploading ID…';
+    const ext=({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','application/pdf':'pdf'})[file.type];
+    const rand=(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2));
+    const path=user.id+'/'+rand+'.'+ext;
+    const up=await sb.storage.from('id-cards').upload(path,file,{contentType:file.type,upsert:false});
+    if(up.error){ show(msg,'bad','Sorry, your ID did not upload. Please try again. ('+up.error.message+')'); send.disabled=false; send.textContent='Post my business'; return; }
+    row.id_card_path=path;
+    send.textContent='Posting…';
     const { error } = await sb.from('businesses').insert(row);
+    if(error) await removeId(path);
     if(error){ show(msg,'bad','Sorry, it did not post. Please try again. ('+error.message+')'); }
     else{
       notify('New business posted: '+row.name, { 'Business':row.name, 'Owner':row.owner_name, 'Member email':user.email, 'Type':row.type, 'Town':row.location,
-        'Amount needed (GH₵)':row.amount, 'Phone':row.phone, 'Review it here':location.origin+'/#admin' });
+        'Amount needed (GH₵)':row.amount, 'Phone':row.phone, 'ID card':'Uploaded (view it in Admin)', 'Review it here':location.origin+'/#admin' });
       form.reset();
       show(msg,'ok','✅ Thank you! Your business was posted and is waiting for review. You can follow it in "My account".');
       loadMine(); if(isAdmin()) loadAdmin();
@@ -437,10 +451,17 @@
     if(error){ box.append(el('div','empty','Could not load your businesses.')); return; }
     if(!data.length){ const e=el('div','empty'); e.innerHTML='You have not posted a business yet. <a href="#apply">Post one now →</a>'; box.append(e); return; }
     data.forEach(b=>box.append(businessCard(b,{status:true,private:true,actions:(ct,b)=>{
-      const d=el('button','btn danger sm','Delete'); d.onclick=()=>confirmDo(d,'Tap again to delete',async()=>{ await sb.from('businesses').delete().eq('id',b.id); loadMine(); loadApproved(); if(isAdmin()) loadAdmin(); }); ct.append(d);
+      const d=el('button','btn danger sm','Delete'); d.onclick=()=>confirmDo(d,'Tap again to delete',async()=>{ await removeId(b.id_card_path); await sb.from('businesses').delete().eq('id',b.id); loadMine(); loadApproved(); if(isAdmin()) loadAdmin(); }); ct.append(d);
     }})));
   }
 
+  async function removeId(path){ if(path){ try{ await sb.storage.from('id-cards').remove([path]); }catch(e){} } }
+  async function viewId(path){
+    const w=window.open('','_blank');
+    const { data, error } = await sb.storage.from('id-cards').createSignedUrl(path, 120);
+    if(error||!data){ if(w) w.close(); alertBox('Could not open the ID card. '+(error?error.message:'')); return; }
+    if(w) w.location=data.signedUrl; else location.href=data.signedUrl;
+  }
   function confirmDo(btn, text, fn){
     if(btn.dataset.sure!=='1'){ btn.dataset.sure='1'; const old=btn.textContent; btn.textContent=text; setTimeout(()=>{ btn.dataset.sure=''; btn.textContent=old; },4000); return; }
     btn.disabled=true; fn();
@@ -466,8 +487,9 @@
       if(b.status!=='approved'){ const a=el('button','btn main sm','✔ Approve'); a.onclick=()=>{a.disabled=true; set({status:'approved'});}; ct.append(a); }
       if(b.status!=='rejected'){ const r=el('button','btn ghost sm','✖ Reject'); r.onclick=()=>{r.disabled=true; set({status:'rejected'});}; ct.append(r); }
       const i=el('button','btn gold sm', b.id_checked?'Remove ✅ badge':'Mark ✅ ID checked'); i.onclick=()=>{i.disabled=true; set({id_checked:!b.id_checked});}; ct.append(i);
+      if(b.id_card_path){ const v=el('button','btn ghost sm','🪪 View ID card'); v.onclick=()=>viewId(b.id_card_path); ct.append(v); }
       const wa=waLink(b.phone); if(wa){ const w=el('a','btn ghost sm','💬 WhatsApp'); w.href=wa; w.target='_blank'; w.rel='noopener'; ct.append(w); }
-      const d=el('button','btn danger sm','Delete'); d.onclick=()=>confirmDo(d,'Tap again to delete',async()=>{ await sb.from('businesses').delete().eq('id',b.id); loadAdmin(); loadApproved(); }); ct.append(d);
+      const d=el('button','btn danger sm','Delete'); d.onclick=()=>confirmDo(d,'Tap again to delete',async()=>{ await removeId(b.id_card_path); await sb.from('businesses').delete().eq('id',b.id); loadAdmin(); loadApproved(); }); ct.append(d);
     }})));
   }
   function alertBox(t){ show($('topMsg'),'bad','Could not save: '+t); setTimeout(()=>{$('topMsg').className='msg';},6000); }

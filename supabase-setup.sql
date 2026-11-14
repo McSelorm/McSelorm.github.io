@@ -30,6 +30,9 @@ create table if not exists public.businesses (
 
 alter table public.businesses enable row level security;
 
+-- ID card upload (private file path, never shown publicly)
+alter table public.businesses add column if not exists id_card_path text;
+
 -- 2. Who is the admin? Only Selorm's email.
 create or replace function public.is_admin() returns boolean
 language sql stable as $$
@@ -69,7 +72,11 @@ begin
     new.status := 'pending';
     new.id_checked := false;
     new.created_at := now();
+    if new.id_card_path is not null and split_part(new.id_card_path, '/', 1) <> auth.uid()::text then
+      raise exception 'ID card file must be your own';
+    end if;
   elsif not public.is_admin() then
+    new.id_card_path := old.id_card_path;
     new.owner := old.owner;
     new.owner_email := old.owner_email;
     new.created_at := old.created_at;
@@ -95,5 +102,29 @@ create view public.approved_businesses as
   where status = 'approved';
 
 grant select on public.approved_businesses to anon, authenticated;
+
+-- 6. Private, locked folder for ID cards.
+--    Each member can only add files in their own folder.
+--    Only that member and Selorm can open them. Max 5 MB, photos or PDF.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('id-cards', 'id-cards', false, 5242880, array['image/jpeg','image/png','image/webp','application/pdf'])
+on conflict (id) do update
+  set public = false, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "id cards: upload own"        on storage.objects;
+drop policy if exists "id cards: read own or admin" on storage.objects;
+drop policy if exists "id cards: delete own or admin" on storage.objects;
+
+create policy "id cards: upload own" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'id-cards' and (storage.foldername(name))[1] = auth.uid()::text);
+
+create policy "id cards: read own or admin" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'id-cards' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin()));
+
+create policy "id cards: delete own or admin" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'id-cards' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin()));
 
 -- Done! You should see "Success. No rows returned".
