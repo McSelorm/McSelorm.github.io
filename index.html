@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/track.js" defer></script>
 <style>
   :root{
     --bg:#f6f2e9; --card:#fff; --ink:#1b2320; --muted:#5d6a64; --line:#e4dccc;
@@ -105,6 +106,28 @@
   .side .ico{font-size:34px;flex:0 0 auto;min-width:0}
   .counts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
   .counts span{font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 10px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .stat b{display:block;font-family:Fraunces,Georgia,serif;font-size:28px;line-height:1.1}
+  .stat span{font-size:12px;color:var(--muted)}
+  .panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:14px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+  .panel h3{margin:0 0 10px;font-size:15px}
+  .bars{display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:6px}
+  .bars div{flex:1;background:var(--brand);border-radius:4px 4px 0 0;min-height:2px;position:relative}
+  .bars div span{position:absolute;top:-16px;left:0;right:0;text-align:center;font-size:10px;color:var(--muted)}
+  .barlbl{display:flex;gap:4px;font-size:10px;color:var(--muted);margin-top:4px}
+  .barlbl span{flex:1;text-align:center}
+  .kv{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-bottom:1px solid var(--line)}
+  .kv:last-child{border-bottom:0}
+  .feed{max-height:420px;overflow:auto}
+  .feed .item{display:flex;gap:10px;font-size:14px;padding:8px 0;border-bottom:1px solid var(--line)}
+  .feed .item time{color:var(--muted);font-size:12px;white-space:nowrap;margin-left:auto}
+  .report{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+  .report.solved{opacity:.6}
+  .smalllink{font-size:12px;color:var(--muted);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;font:inherit;font-size:12px}
+  .contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  footer a{color:var(--muted)}
   footer{padding:30px 0 50px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);margin-top:20px}
 </style>
 </head>
@@ -192,7 +215,22 @@
   </section>
 
   <section id="admin" hidden>
-    <h2>Admin: review businesses</h2>
+    <h2>📊 Dashboard</h2>
+    <p class="sub">What is happening on your site. Only you can see this. It refreshes every 30 seconds. <button class="smalllink" id="dashRefresh">Refresh now</button></p>
+    <div class="stats" id="dashStats"></div>
+    <div class="panels">
+      <div class="panel" style="grid-column:1/-1"><h3>Visits in the last 14 days</h3><div class="bars" id="dashBars"></div><div class="barlbl" id="dashBarLbl"></div></div>
+      <div class="panel"><h3>Where visitors came from (30 days)</h3><div id="dashFrom"></div></div>
+      <div class="panel"><h3>Phone or computer (30 days)</h3><div id="dashDevice"></div></div>
+      <div class="panel"><h3>Most opened pages (30 days)</h3><div id="dashPages"></div></div>
+    </div>
+    <div class="panel"><h3>⚡ Live activity: what people did</h3><div class="feed" id="dashFeed"></div></div>
+
+    <h2 style="margin-top:30px">🚩 Reports</h2>
+    <p class="sub">Problems and scam warnings people sent you.</p>
+    <div id="reportList"></div>
+
+    <h2 style="margin-top:30px">Review businesses</h2>
     <p class="sub">Only you can see this. Approve good businesses, and give the ✅ badge after you check the owner's Ghana Card.</p>
     <div class="counts" id="counts"></div>
     <div class="tabs" id="adminTabs">
@@ -214,6 +252,16 @@
     </div>
   </section>
 
+  <section id="contact">
+    <h2>Contact &amp; help</h2>
+    <p class="sub">We are real people, and we are easy to reach.</p>
+    <div class="contact-grid">
+      <div class="step"><h3>✉️ Email</h3><p><a id="contactEmail" href="#"></a><br>We reply within 2 days.</p></div>
+      <div class="step"><h3>📍 Where we are</h3><p>Ghana. We meet business owners in person or on a video call before any investment.</p></div>
+      <div class="step"><h3>🚩 Report a problem or scam</h3><p>Seen a fake business, or someone pretending to be Selorm? Tell us.</p><button class="btn ghost sm" style="margin-top:8px" id="reportBtn">Report a problem</button></div>
+    </div>
+  </section>
+
   <section>
     <div class="warn">
       <h3>⚠️ Stay safe</h3>
@@ -227,7 +275,23 @@
     </div>
   </section>
 
-  <footer>Grow With Selorm is run by <a href="/about/">Selorm Yao Junior Ahiabor</a> · Ghana. This is not financial advice.</footer>
+  <footer>Grow With Selorm is run by <a href="/about/">Selorm Yao Junior Ahiabor</a> · Ghana. This is not financial advice. · <a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms of Use</a> · <a href="#contact">Contact</a></footer>
+</div>
+
+<!-- Report modal -->
+<div class="modal" id="repModal" hidden role="dialog" aria-modal="true" aria-labelledby="repTitle">
+  <div class="box">
+    <button class="x" id="repClose" aria-label="Close">×</button>
+    <h2 id="repTitle">Report a problem</h2>
+    <p class="sub" id="repSub" style="margin:0">Tell us what is wrong. Only Selorm will read this.</p>
+    <form id="repForm" novalidate>
+      <label>Your name <small>(optional)</small><input id="rName" maxlength="80"></label>
+      <label>Phone or email, so we can reply <small>(optional)</small><input id="rContact" maxlength="120"></label>
+      <label>What happened?<textarea id="rMsg" maxlength="1500" required placeholder="e.g. This business is fake / someone asked me for money"></textarea></label>
+      <button class="btn main" type="submit" id="rBtn">Send report</button>
+      <div class="msg" id="rOut" role="status" style="margin-top:0"></div>
+    </form>
+  </div>
 </div>
 
 <!-- Log in / Join modal -->
@@ -239,6 +303,7 @@
     <form id="authForm" novalidate>
       <label id="nameRow">Your full name<input id="aName" maxlength="80" autocomplete="name"></label>
       <label id="emailRow">Email<input id="aEmail" type="email" maxlength="120" autocomplete="email"></label>
+      <label class="check" id="ageRow"><input type="checkbox" id="aAge"> I am 18 or older, and I agree to the <a href="/terms/" target="_blank">Terms</a> and <a href="/privacy/" target="_blank">Privacy Policy</a>.</label>
       <label id="passRow">Password <small id="passHint">At least 8 characters.</small><input id="aPass" type="password" minlength="8" autocomplete="current-password"></label>
       <button class="btn main" type="submit" id="authBtn">Join free</button>
       <div class="msg" id="authMsg" role="status" style="margin-top:0"></div>
@@ -310,6 +375,7 @@
       const wa = b.phone ? waLink(b.phone) : null;
       if(wa){ const a=el('a','btn main sm','💬 WhatsApp '+((b.owner_name||'owner').split(' ')[0])); a.href=wa; a.target='_blank'; a.rel='noopener'; ct.append(a); }
       else { const a=el('a','btn ghost sm','Ask Selorm about this'); a.href='mailto:'+ADMIN_EMAIL+'?subject='+encodeURIComponent('Interested in: '+b.name); ct.append(a); }
+      const rp=el('button','smalllink','🚩 Report'); rp.style.marginLeft='auto'; rp.onclick=()=>openReport(b); ct.append(rp);
     }
     card.append(ct);
     return card;
@@ -341,7 +407,7 @@
              forgot:['Reset password','We will email you a link to make a new password.','Send reset link','Back to log in'],
              newpass:['Make a new password','Type your new password below.','Save new password','']}[m];
     $('authTitle').textContent=t[0]; $('authSub').textContent=note||t[1]; $('authBtn').textContent=t[2]; $('swap').textContent=t[3];
-    $('nameRow').hidden = m!=='signup'; $('emailRow').hidden = m==='newpass'; $('passRow').hidden = m==='forgot';
+    $('nameRow').hidden = m!=='signup'; $('ageRow').hidden = m!=='signup'; $('emailRow').hidden = m==='newpass'; $('passRow').hidden = m==='forgot';
     $('forgot').hidden = m!=='login'; $('swap').hidden = m==='newpass';
     $('aPass').autocomplete = (m==='signup'||m==='newpass')?'new-password':'current-password';
     $('passHint').hidden = m==='login';
@@ -372,6 +438,7 @@
     const box=$('authMsg');
     if(mode!=='newpass' && !/^\S+@\S+\.\S+$/.test(email)){ show(box,'bad','Please type a correct email.'); return; }
     if(mode==='signup' && name.length<2){ show(box,'bad','Please type your full name.'); return; }
+    if(mode==='signup' && !$('aAge').checked){ show(box,'bad','Please tick the box to confirm you are 18 or older and agree to the Terms.'); return; }
     if(mode!=='forgot' && pass.length<8){ show(box,'bad','Password must be at least 8 characters.'); return; }
     const btn=$('authBtn'); btn.disabled=true;
     try{
@@ -379,12 +446,14 @@
         const { data, error } = await sb.auth.signUp({ email, password:pass, options:{ data:{ full_name:name }, emailRedirectTo: location.origin + '/' } });
         if(error) throw error;
         if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0) throw new Error('already registered');
+        logEvent('signup', name+' · '+email);
         notify('New member joined Grow With Selorm: '+name, { Name:name, Email:email, Time:new Date().toLocaleString() });
         if(data.session){ closeAuth(); }
         else show(box,'ok','✅ Almost done! We sent an email to '+email+'. Open it and tap the link to confirm your account, then log in. (Check Spam too.)');
       } else if(mode==='login'){
         const { error } = await sb.auth.signInWithPassword({ email, password:pass });
         if(error) throw error;
+        logEvent('login', email);
         closeAuth();
       } else if(mode==='forgot'){
         const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/' });
@@ -400,7 +469,7 @@
     btn.disabled=false;
   });
 
-  $('logout').onclick=async()=>{ if(sb) await sb.auth.signOut(); location.hash=''; };
+  $('logout').onclick=async()=>{ if(sb){ await logEvent('logout', user&&user.email); await sb.auth.signOut(); } location.hash=''; };
 
   // ---------- post a business ----------
   $('form').addEventListener('submit', async e=>{
@@ -434,6 +503,7 @@
     else{
       notify('New business posted: '+row.name, { 'Business':row.name, 'Owner':row.owner_name, 'Member email':user.email, 'Type':row.type, 'Town':row.location,
         'Amount needed (GH₵)':row.amount, 'Phone':row.phone, 'ID card':'Uploaded (view it in Admin)', 'Review it here':location.origin+'/#admin' });
+      logEvent('post_business', row.name+' · '+user.email);
       form.reset();
       show(msg,'ok','✅ Thank you! Your business was posted and is waiting for review. You can follow it in "My account".');
       loadMine(); if(isAdmin()) loadAdmin();
@@ -462,6 +532,120 @@
     if(error||!data){ if(w) w.close(); alertBox('Could not open the ID card. '+(error?error.message:'')); return; }
     if(w) w.location=data.signedUrl; else location.href=data.signedUrl;
   }
+  // ---------- contact email (shown from the constant above) ----------
+  $('contactEmail').textContent = ADMIN_EMAIL; $('contactEmail').href = 'mailto:' + ADMIN_EMAIL;
+
+  // ---------- activity log ----------
+  function visitorId(){ try{ return localStorage.getItem('gws_visitor')||null; }catch(e){ return null; } }
+  function deviceType(){ const u=navigator.userAgent||''; return /iPad|Tablet/i.test(u)?'Tablet':/Mobi|Android|iPhone/i.test(u)?'Phone':'Computer'; }
+  async function logEvent(event, detail){
+    if(!sb) return;
+    try{ await sb.from('activity').insert({ visitor:visitorId(), event, page:location.pathname.slice(0,100), detail:detail?String(detail).slice(0,200):null, device:deviceType() }); }catch(e){}
+  }
+
+  // ---------- report a problem ----------
+  let repBiz=null;
+  function openReport(b){
+    repBiz=b||null; $('repModal').hidden=false; $('rOut').className='msg'; $('rBtn').disabled=false;
+    $('repTitle').textContent = b ? 'Report this business' : 'Report a problem';
+    $('repSub').textContent = b ? 'You are reporting: '+b.name+'. Only Selorm will read this.' : 'Tell us what is wrong. Only Selorm will read this.';
+    if(user){ if(!$('rContact').value) $('rContact').value=user.email; if(!$('rName').value && user.user_metadata) $('rName').value=user.user_metadata.full_name||''; }
+    setTimeout(()=>$('rMsg').focus(),50);
+  }
+  $('reportBtn').onclick=()=>openReport(null);
+  $('repClose').onclick=()=>{ $('repModal').hidden=true; };
+  $('repModal').addEventListener('click',e=>{ if(e.target.id==='repModal') $('repModal').hidden=true; });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('repModal').hidden=true; });
+  $('repForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const out=$('rOut'), message=$('rMsg').value.trim();
+    if(message.length<5){ show(out,'bad','Please tell us a little more (at least 5 letters).'); return; }
+    if(!sb){ show(out,'bad','Cannot connect right now. Please email '+ADMIN_EMAIL+' instead.'); return; }
+    const row={ message, name:$('rName').value.trim()||null, contact:$('rContact').value.trim()||null, business_id:repBiz?repBiz.id:null, business_name:repBiz?repBiz.name:null };
+    $('rBtn').disabled=true;
+    const { error } = await sb.from('reports').insert(row);
+    if(error){ show(out,'bad','Sorry, it did not send. Please email '+ADMIN_EMAIL+' instead.'); $('rBtn').disabled=false; return; }
+    logEvent('report', row.business_name||'general');
+    notify('🚩 New report on Grow With Selorm'+(row.business_name?': '+row.business_name:''), { 'About business':row.business_name||'(general)', 'Name':row.name||'-', 'Contact':row.contact||'-', 'Message':message, 'See it here':location.origin+'/#admin' });
+    $('rMsg').value='';
+    show(out,'ok','✅ Thank you. Your report was sent to Selorm.');
+  });
+
+  // ---------- admin dashboard ----------
+  function dayKey(d){ const x=new Date(d); return x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate(); }
+  function kvList(box, counts, empty){
+    box.innerHTML=''; const arr=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    if(!arr.length){ box.append(el('div','stage',empty||'No data yet.')); return; }
+    arr.forEach(([k,v])=>{ const r=el('div','kv'); r.append(el('span',null,k), el('b',null,String(v))); box.append(r); });
+  }
+  const PAGE_NAMES={'/':'Home (business board)','/about/':'Meet Selorm','/planner/':'Money planner','/privacy/':'Privacy Policy','/terms/':'Terms','/invest/':'Old /invest link'};
+  function feedText(a){
+    const who = a.device ? ' on a '+a.device.toLowerCase() : '';
+    switch(a.event){
+      case 'visit':  return ['👀','Someone'+who+' opened '+(PAGE_NAMES[a.page]||a.page)+(a.referrer?' (came from '+a.referrer+')':'')];
+      case 'signup': return ['🆕','New member joined: '+(a.detail||'')];
+      case 'login':  return ['🔑','Logged in: '+(a.detail||'')];
+      case 'logout': return ['👋','Logged out: '+(a.detail||'')];
+      case 'post_business': return ['🏪','Posted a business: '+(a.detail||'')];
+      case 'report': return ['🚩','Sent a report about: '+(a.detail||'')];
+      default: return ['•',a.event];
+    }
+  }
+  function timeAgo(t){ const d=(Date.now()-new Date(t))/1000; if(d<60) return 'just now'; if(d<3600) return Math.floor(d/60)+' min ago'; if(d<86400) return Math.floor(d/3600)+' h ago'; return Math.floor(d/86400)+' d ago'; }
+  let openReports=0;
+  async function loadDashboard(){
+    if(!isAdmin()||!sb) return;
+    const since=new Date(Date.now()-30*86400000).toISOString();
+    const { data, error } = await sb.from('activity').select('*').gte('created_at',since).order('created_at',{ascending:false}).limit(1000);
+    if(error){ $('dashStats').innerHTML=''; $('dashStats').append(el('div','stage','Dashboard could not load. Did you run the newest setup code in Supabase? ('+error.message+')')); return; }
+    const acts=data||[], now=Date.now(), today=dayKey(now);
+    const visits=acts.filter(a=>a.event==='visit');
+    const v7=visits.filter(a=>now-new Date(a.created_at)<7*86400000);
+    const vToday=visits.filter(a=>dayKey(a.created_at)===today);
+    const uniq=arr=>new Set(arr.map(a=>a.visitor||a.id)).size;
+    const in7=ev=>acts.filter(a=>a.event===ev && now-new Date(a.created_at)<7*86400000).length;
+    const waiting=adminRows.filter(b=>b.status==='pending').length;
+    const st=$('dashStats'); st.innerHTML='';
+    [[vToday.length,'Visits today'],[uniq(vToday),'People today'],[v7.length,'Visits this week'],[uniq(v7),'People this week'],
+     [in7('signup'),'New members this week'],[in7('post_business'),'Businesses posted this week'],[waiting,'⏳ Waiting for you'],[openReports,'🚩 Open reports']]
+     .forEach(([n,t])=>{ const c=el('div','stat'); c.append(el('b',null,String(n)), el('span',null,t)); st.append(c); });
+    const days=[]; for(let i=13;i>=0;i--){ const d=new Date(now-i*86400000); days.push({k:dayKey(d), l:i===0?'Today':d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}), n:0}); }
+    visits.forEach(a=>{ const d=days.find(x=>x.k===dayKey(a.created_at)); if(d) d.n++; });
+    const max=Math.max(1,...days.map(d=>d.n));
+    $('dashBars').innerHTML=''; $('dashBarLbl').innerHTML='';
+    days.forEach((d,i)=>{ const b=el('div'); b.style.height=(d.n/max*100)+'%'; b.title=d.l+': '+d.n+' visits'; if(d.n) b.append(el('span',null,String(d.n))); $('dashBars').append(b);
+      $('dashBarLbl').append(el('span',null,(i%2===1||i===13)?d.l:'')); });
+    const cnt=(arr,f)=>arr.reduce((o,a)=>{ const k=f(a); if(k) o[k]=(o[k]||0)+1; return o; },{});
+    kvList($('dashFrom'), cnt(visits,a=>a.referrer), 'No outside visits yet.');
+    kvList($('dashDevice'), cnt(visits,a=>a.device));
+    kvList($('dashPages'), cnt(visits,a=>PAGE_NAMES[a.page]||a.page));
+    const feed=$('dashFeed'); feed.innerHTML='';
+    if(!acts.length) feed.append(el('div','stage','Nothing yet. Share your link and visits will show here.'));
+    acts.slice(0,60).forEach(a=>{ const [ico,txt]=feedText(a); const r=el('div','item'); r.append(el('span',null,ico), el('span',null,txt), el('time',null,timeAgo(a.created_at))); feed.append(r); });
+  }
+  $('dashRefresh').onclick=()=>{ loadReports().then(loadDashboard); loadAdmin(); };
+
+  async function loadReports(){
+    if(!isAdmin()||!sb) return;
+    const { data, error } = await sb.from('reports').select('*').order('created_at',{ascending:false}).limit(200);
+    const box=$('reportList'); box.innerHTML='';
+    if(error){ box.append(el('div','stage','Reports could not load. ('+error.message+')')); return; }
+    openReports=(data||[]).filter(r=>r.status==='open').length;
+    if(!data.length){ box.append(el('div','empty','No reports. 🎉')); return; }
+    data.forEach(r=>{
+      const c=el('div','report'+(r.status==='solved'?' solved':''));
+      c.append(el('div','stage',(r.status==='open'?'🚩 Open':'✔ Solved')+' · '+timeAgo(r.created_at)+(r.business_name?' · about: '+r.business_name:' · general')));
+      c.append(el('p',null,r.message));
+      c.append(el('div','stage','From: '+(r.name||'unknown')+(r.contact?' · '+r.contact:'')));
+      const row=el('div'); row.style.display='flex'; row.style.gap='8px'; row.style.marginTop='8px';
+      const t=el('button','btn ghost sm', r.status==='open'?'✔ Mark solved':'Reopen');
+      t.onclick=async()=>{ t.disabled=true; await sb.from('reports').update({status:r.status==='open'?'solved':'open'}).eq('id',r.id); loadReports().then(loadDashboard); };
+      const d=el('button','btn danger sm','Delete'); d.onclick=()=>confirmDo(d,'Tap again to delete',async()=>{ await sb.from('reports').delete().eq('id',r.id); loadReports().then(loadDashboard); });
+      row.append(t,d); c.append(row); box.append(c);
+    });
+  }
+  setInterval(()=>{ if(isAdmin() && !document.hidden){ loadReports().then(loadDashboard); } }, 30000);
+
   function confirmDo(btn, text, fn){
     if(btn.dataset.sure!=='1'){ btn.dataset.sure='1'; const old=btn.textContent; btn.textContent=text; setTimeout(()=>{ btn.dataset.sure=''; btn.textContent=old; },4000); return; }
     btn.disabled=true; fn();
@@ -501,10 +685,11 @@
     $('navOut').hidden=!!user; $('navIn').hidden=!user;
     $('applyGate').hidden=!!user; $('applyCard').hidden=!user;
     $('account').hidden=!user; $('admin').hidden=!isAdmin(); $('navAdmin').hidden=!isAdmin();
+    if(isAdmin()){ try{ localStorage.setItem('gws_is_admin','1'); }catch(e){} }
     if(user){
       $('hello').textContent='Hi, '+firstName()+' 👋';
       const nm=$('form').elements['owner_name']; if(!nm.value && user.user_metadata && user.user_metadata.full_name) nm.value=user.user_metadata.full_name;
-      loadMine(); loadAdmin();
+      loadMine(); loadAdmin(); if(isAdmin()){ loadReports().then(loadDashboard); }
     }
   }
 
