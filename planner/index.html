@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Future Money Planner | Selorm Yao Junior Ahiabor</title>
+<meta name="description" content="Free savings and investment planner in Ghana cedis. See how your money can grow and how much to save each month. Built by Selorm Yao Junior Ahiabor.">
+<link rel="canonical" href="https://mcselorm.github.io/planner/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f3ec; --card:#ffffff; --ink:#1d2a24; --muted:#5f6d66; --line:#e3ddd0;
+    --green:#1f7a4d; --green-soft:#e3f1e8; --gold:#c8902b; --gold-soft:#fbf1dc; --red:#b4412f;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#121815; --card:#1b2420; --ink:#eef3ef; --muted:#9fb0a7; --line:#2c3833;
+      --green:#4fbf85; --green-soft:#1d3329; --gold:#e3b25a; --gold-soft:#3a2f1b; --red:#e07a66; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.5}
+  .wrap{max-width:960px;margin:0 auto;padding:28px 18px 60px}
+  header h1{font-family:Fraunces,Georgia,serif;font-size:clamp(28px,5vw,40px);margin:0 0 4px;letter-spacing:-.5px}
+  header p{margin:0;color:var(--muted)}
+  .note{background:var(--gold-soft);border:1px solid var(--gold);border-radius:12px;padding:10px 14px;margin:18px 0;font-size:14px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:18px 0}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .stat .label{font-size:13px;color:var(--muted)}
+  .stat .value{font-family:Fraunces,Georgia,serif;font-size:28px;font-weight:700;margin-top:2px}
+  .stat.big .value{color:var(--green)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin:14px 0}
+  .card h2{font-family:Fraunces,Georgia,serif;font-size:21px;margin:0 0 12px}
+  form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}
+  label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+  input,select{font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}
+  input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px}
+  button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
+  .btn{background:var(--green);color:#fff}
+  .btn:hover{filter:brightness(1.08)}
+  .ghost{background:transparent;color:var(--red);padding:6px 8px;font-size:13px}
+  .help{font-size:12px;color:var(--muted);margin-top:8px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:10px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:var(--green-soft);color:var(--green)}
+  .empty{color:var(--muted);text-align:center;padding:22px 0}
+  .tablewrap{overflow-x:auto}
+  .controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .controls input[type=range]{width:200px;padding:0}
+  canvas{width:100%;height:280px;display:block}
+  .legend{display:flex;gap:16px;font-size:13px;color:var(--muted);margin-top:8px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+  .learn p{margin:6px 0;font-size:14px}
+  .goalResult{margin-top:14px;background:var(--green-soft);border-radius:12px;padding:14px 16px;font-size:15px}
+  .goalResult .big{font-family:Fraunces,Georgia,serif;font-size:30px;font-weight:700;color:var(--green);display:block;margin:2px 0}
+  .bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:10px}
+  .bar span{display:block;height:100%;background:var(--green)}
+  footer{font-size:12px;color:var(--muted);margin-top:24px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/" style="font-size:14px;color:var(--muted);text-decoration:none">← Back to Selorm's website</a>
+    <h1>Future Money Planner</h1>
+    <p>Write down your savings and investments. See how much they could grow in the future.</p>
+  </header>
+
+  <div class="note">This app is a <b>planner</b>. It does not take or keep real money. The future numbers are guesses based on the growth rate you type in. Real returns can go up or down.</div>
+
+  <div class="stats">
+    <div class="stat"><div class="label">Money you have now</div><div class="value" id="sNow">GH₵0</div></div>
+    <div class="stat"><div class="label">Money you will add</div><div class="value" id="sAdd">GH₵0</div></div>
+    <div class="stat big"><div class="label" id="sFutureLabel">Money in the future</div><div class="value" id="sFuture">GH₵0</div></div>
+    <div class="stat"><div class="label">Growth (money made by money)</div><div class="value" id="sGrowth">GH₵0</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Add a saving or investment</h2>
+    <form id="addForm">
+      <label>Name<input id="fName" placeholder="e.g. My T-bill" required></label>
+      <label>Type
+        <select id="fType">
+          <option>Treasury bill</option>
+          <option>Fixed deposit</option>
+          <option>Mutual fund</option>
+          <option>Stocks</option>
+          <option>Savings account</option>
+          <option>Mobile money savings</option>
+          <option>Other</option>
+        </select>
+      </label>
+      <label>Money now (GH₵)<input id="fAmount" type="number" min="0" step="any" value="1000" required></label>
+      <label>Add each month (GH₵)<input id="fMonthly" type="number" min="0" step="any" value="100"></label>
+      <label>Growth per year (%)<input id="fRate" type="number" min="-50" max="200" step="any" value="15" required></label>
+      <button class="btn" type="submit">+ Add</button>
+    </form>
+    <div class="help">Growth per year: ask your bank or fund what rate they give, then type it here. Example: 15% means GH₵100 becomes about GH₵115 after one year.</div>
+  </div>
+
+  <div class="card">
+    <h2>My savings goal</h2>
+    <form id="goalForm">
+      <label>Goal (GH₵)<input id="gTarget" type="number" min="0" step="any" value="10000"></label>
+      <label>By year<input id="gYear" type="number" min="2027" max="2100" step="1" value="2030"></label>
+      <label>Money I have now (GH₵)<input id="gStart" type="number" min="0" step="any" value="1000"></label>
+      <label>Growth per year (%)<input id="gRate" type="number" min="-50" max="200" step="any" value="15"></label>
+    </form>
+    <div class="goalResult" id="goalResult"></div>
+  </div>
+
+  <div class="card">
+    <h2>My list</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Name</th><th>Type</th><th class="num">Now</th><th class="num">Monthly</th><th class="num">Rate</th><th class="num" id="thFuture">Future</th><th></th></tr></thead>
+        <tbody id="list"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>See the future</h2>
+    <div class="controls">
+      <label style="flex-direction:row;align-items:center;gap:10px">How many years?
+        <input id="years" type="range" min="1" max="40" value="10">
+        <b id="yearsOut">10 years</b>
+      </label>
+    </div>
+    <canvas id="chart"></canvas>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--gold)"></span>Money you put in</span>
+      <span><span class="dot" style="background:var(--green)"></span>Total with growth</span>
+    </div>
+  </div>
+
+  <div class="card learn">
+    <h2>Easy money words</h2>
+    <p><b>Treasury bill (T-bill):</b> you lend money to the government for a short time, and they pay you back with extra.</p>
+    <p><b>Fixed deposit:</b> you leave money in a bank for a set time, and the bank pays you extra.</p>
+    <p><b>Mutual fund:</b> many people put money together, and experts invest it for them.</p>
+    <p><b>Stocks:</b> you buy a small piece of a company. Its value can go up or down.</p>
+    <p><b>Compound growth:</b> your growth also grows. Like a snowball rolling down a hill, it gets bigger faster over time.</p>
+    <p><b>Stay safe:</b> only invest with companies licensed by the SEC Ghana or the Bank of Ghana. If someone promises very big money very fast, it is probably a scam.</p>
+  </div>
+
+  <footer>Your list is saved only in this browser on this device. This is not financial advice. Built by <a href="/" style="color:inherit">Selorm Yao Junior Ahiabor</a>.</footer>
+</div>
+
+<script>
+(function(){
+  const KEY = 'future-money-planner-v1';
+  let items = [];
+  try { items = JSON.parse(localStorage.getItem(KEY) || '[]') || []; } catch(e) { items = []; }
+  if (!Array.isArray(items)) items = [];
+  if (items.length === 0) {
+    items = [
+      {id:1,name:'Example: T-bill',type:'Treasury bill',amount:1000,monthly:100,rate:15},
+      {id:2,name:'Example: Mutual fund',type:'Mutual fund',amount:500,monthly:50,rate:12}
+    ];
+  }
+  const $ = id => document.getElementById(id);
+  const money = n => 'GH₵' + Math.round(n).toLocaleString('en-US');
+
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(items)); } catch(e) {} }
+
+  // value of one item after m months (monthly compounding, deposit at month end)
+  function valueAt(it, months){
+    const r = it.rate/100/12;
+    let v = it.amount;
+    for (let i=0;i<months;i++){ v = v*(1+r) + it.monthly; }
+    return v;
+  }
+  function putIn(it, months){ return it.amount + it.monthly*months; }
+
+  function render(){
+    const years = +$('years').value;
+    const months = years*12;
+    $('yearsOut').textContent = years + (years===1?' year':' years');
+    $('thFuture').textContent = 'In ' + years + ' yr';
+    $('sFutureLabel').textContent = 'Money in ' + years + (years===1?' year':' years');
+
+    const tb = $('list'); tb.innerHTML = '';
+    if (!items.length){
+      tb.innerHTML = '<tr><td colspan="7" class="empty">Nothing here yet. Add your first saving above.</td></tr>';
+    }
+    let now=0, add=0, fut=0;
+    items.forEach(it=>{
+      const f = valueAt(it, months);
+      now += it.amount; add += it.monthly*months; fut += f;
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td></td><td><span class="tag"></span></td><td class="num">'+money(it.amount)+'</td><td class="num">'+money(it.monthly)+'</td><td class="num">'+it.rate+'%</td><td class="num"><b>'+money(f)+'</b></td><td class="num"><button class="ghost" aria-label="Remove">Remove</button></td>';
+      tr.children[0].textContent = it.name;
+      tr.querySelector('.tag').textContent = it.type;
+      tr.querySelector('button').onclick = ()=>{ items = items.filter(x=>x.id!==it.id); save(); render(); };
+      tb.appendChild(tr);
+    });
+    $('sNow').textContent = money(now);
+    $('sAdd').textContent = money(add);
+    $('sFuture').textContent = money(fut);
+    const g = fut - now - add;
+    $('sGrowth').textContent = (g<0?'-':'') + money(Math.abs(g));
+    drawChart(years);
+  }
+
+  function drawChart(years){
+    const c = $('chart'); const dpr = window.devicePixelRatio||1;
+    const W = c.clientWidth, H = c.clientHeight;
+    c.width = W*dpr; c.height = H*dpr;
+    const ctx = c.getContext('2d'); ctx.scale(dpr,dpr); ctx.clearRect(0,0,W,H);
+    const css = getComputedStyle(document.documentElement);
+    const green = css.getPropertyValue('--green').trim(), gold = css.getPropertyValue('--gold').trim();
+    const muted = css.getPropertyValue('--muted').trim(), line = css.getPropertyValue('--line').trim();
+    const total=[], inp=[];
+    for (let y=0;y<=years;y++){
+      total.push(items.reduce((s,it)=>s+valueAt(it,y*12),0));
+      inp.push(items.reduce((s,it)=>s+putIn(it,y*12),0));
+    }
+    const max = Math.max(1, ...total, ...inp);
+    const L=64, R=12, T=12, B=28, pw=W-L-R, ph=H-T-B;
+    const x = i => L + (years? i/years : 0)*pw;
+    const y = v => T + ph - (v/max)*ph;
+    ctx.font = '12px Inter, sans-serif'; ctx.fillStyle = muted; ctx.strokeStyle = line; ctx.lineWidth = 1;
+    for (let k=0;k<=4;k++){
+      const v = max*k/4, yy = y(v);
+      ctx.beginPath(); ctx.moveTo(L,yy); ctx.lineTo(W-R,yy); ctx.stroke();
+      ctx.textAlign='right'; ctx.fillText(short(v), L-8, yy+4);
+    }
+    ctx.textAlign='center';
+    const step = Math.max(1, Math.ceil(years/8));
+    for (let i=0;i<=years;i+=step) ctx.fillText('Yr '+i, x(i), H-8);
+    function line2(arr,color,fill){
+      ctx.beginPath(); arr.forEach((v,i)=> i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v)));
+      if (fill){ ctx.lineTo(x(arr.length-1),y(0)); ctx.lineTo(x(0),y(0)); ctx.closePath(); ctx.globalAlpha=.15; ctx.fillStyle=color; ctx.fill(); ctx.globalAlpha=1;
+        ctx.beginPath(); arr.forEach((v,i)=> i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v))); }
+      ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.stroke();
+    }
+    line2(total, green, true);
+    line2(inp, gold, false);
+  }
+  function short(v){
+    if (v>=1e6) return 'GH₵'+(v/1e6).toFixed(1)+'M';
+    if (v>=1e3) return 'GH₵'+(v/1e3).toFixed(0)+'k';
+    return 'GH₵'+Math.round(v);
+  }
+
+  $('addForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    const it = {
+      id: Date.now(),
+      name: $('fName').value.trim() || 'My saving',
+      type: $('fType').value,
+      amount: Math.max(0, +$('fAmount').value || 0),
+      monthly: Math.max(0, +$('fMonthly').value || 0),
+      rate: +$('fRate').value || 0
+    };
+    items = items.filter(x=>!String(x.name).startsWith('Example:'));
+    items.push(it); save(); render();
+    $('fName').value='';
+  });
+  // ---- Savings goal ----
+  const GKEY = 'future-money-goal-v1';
+  try {
+    const g = JSON.parse(localStorage.getItem(GKEY) || 'null');
+    if (g) { ['gTarget','gYear','gStart','gRate'].forEach(k=>{ if (g[k]!=null) $(k).value = g[k]; }); }
+  } catch(e) {}
+  function renderGoal(){
+    const target = Math.max(0, +$('gTarget').value || 0);
+    const start = Math.max(0, +$('gStart').value || 0);
+    const rate = +$('gRate').value || 0;
+    const now = new Date();
+    const endYear = Math.round(+$('gYear').value || now.getFullYear()+1);
+    // months from now until the start of the goal year's December
+    const n = Math.max(0, (endYear - now.getFullYear())*12 + (11 - now.getMonth()));
+    try { localStorage.setItem(GKEY, JSON.stringify({gTarget:target,gYear:endYear,gStart:start,gRate:rate})); } catch(e) {}
+    const out = $('goalResult');
+    if (n <= 0) { out.innerHTML = 'Pick a year in the future.'; return; }
+    const r = rate/100/12;
+    const grow = Math.pow(1+r, n);
+    const startLater = start*grow;
+    let monthly;
+    if (startLater >= target) monthly = 0;
+    else if (r === 0) monthly = (target - start)/n;
+    else monthly = (target - startLater)*r/(grow - 1);
+    monthly = Math.max(0, monthly);
+    const yourMoney = start + monthly*n;
+    const growth = Math.max(0, target - yourMoney);
+    const pct = target ? Math.min(100, start/target*100) : 0;
+    if (monthly === 0) {
+      out.innerHTML = 'Great news! The money you have now can reach your goal by <b>'+endYear+'</b> without adding more.' +
+        '<div class="bar"><span style="width:'+pct.toFixed(1)+'%"></span></div>';
+    } else {
+      out.innerHTML = 'To have <b>'+money(target)+'</b> by December <b>'+endYear+'</b>, save about:' +
+        '<span class="big">'+money(Math.ceil(monthly))+' each month</span>' +
+        'That is about '+money(Math.ceil(monthly*12/52))+' each week. ' +
+        'You will put in '+money(yourMoney)+' of your own money, and growth adds about '+money(growth)+'.' +
+        '<div class="bar" title="How much of your goal you have now"><span style="width:'+pct.toFixed(1)+'%"></span></div>' +
+        '<div class="help">The bar shows how much of the goal you have now: '+pct.toFixed(0)+'%.</div>';
+    }
+  }
+  ['gTarget','gYear','gStart','gRate'].forEach(k=> $(k).addEventListener('input', renderGoal));
+  $('goalForm').addEventListener('submit', e=> e.preventDefault());
+  renderGoal();
+
+  $('years').addEventListener('input', render);
+  window.addEventListener('resize', render);
+  render();
+})();
+</script>
+</body>
+</html>
