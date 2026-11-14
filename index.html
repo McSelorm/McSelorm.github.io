@@ -4,37 +4,44 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Grow With Selorm | Get Investment for Your Small Business in Ghana</title>
-<meta name="description" content="Have a small business or business idea in Ghana? Post it for free and get seen by investors. Run by Selorm Yao Junior Ahiabor.">
+<meta name="description" content="Have a small business or business idea in Ghana? Join the Grow With Selorm community, post it for free and get seen by investors. Run by Selorm Yao Junior Ahiabor.">
 <link rel="canonical" href="https://mcselorm.github.io/">
 <meta property="og:title" content="Grow With Selorm | Get Investment for Your Small Business">
-<meta property="og:description" content="Post your small business or idea for free and get seen by investors in Ghana.">
+<meta property="og:description" content="Join the community, post your small business for free and get seen by investors in Ghana.">
 <meta property="og:url" content="https://mcselorm.github.io/">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --bg:#f6f2e9; --card:#fff; --ink:#1b2320; --muted:#5d6a64; --line:#e4dccc;
-    --brand:#17694f; --brand-soft:#dff0e8; --gold:#c4861a; --gold-soft:#fbeed3; --red:#b0412e;
+    --brand:#17694f; --brand-soft:#dff0e8; --gold:#c4861a; --gold-soft:#fbeed3; --red:#b0412e; --red-soft:#f7e1dc;
   }
   @media (prefers-color-scheme: dark){
     :root{ --bg:#101614; --card:#19211f; --ink:#ecf2ef; --muted:#9db0a8; --line:#2b3632;
-      --brand:#54c19c; --brand-soft:#1a332b; --gold:#e6b14e; --gold-soft:#3a2e17; --red:#e27b67; }
+      --brand:#54c19c; --brand-soft:#1a332b; --gold:#e6b14e; --gold-soft:#3a2e17; --red:#e27b67; --red-soft:#3a201b; }
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.55}
   a{color:var(--brand)}
+  [hidden]{display:none!important}
   .wrap{max-width:1080px;margin:0 auto;padding:0 18px}
-  .top{display:flex;justify-content:space-between;align-items:center;padding:16px 0;font-size:14px}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 0;font-size:14px;flex-wrap:wrap}
   .top a{color:var(--muted);text-decoration:none}
+  .top .logo{font-weight:700;color:var(--ink)}
+  .nav{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .hero{padding:30px 0 26px}
   .hero h1{font-family:Fraunces,Georgia,serif;font-size:clamp(32px,6vw,54px);line-height:1.05;margin:0 0 12px;letter-spacing:-1px;max-width:760px}
   .hero h1 em{font-style:normal;color:var(--brand)}
   .hero p{font-size:18px;color:var(--muted);max-width:640px;margin:0 0 20px}
   .btn{display:inline-block;font:inherit;font-weight:600;border:0;border-radius:12px;padding:12px 20px;cursor:pointer;text-decoration:none;font-size:15px}
+  .btn.sm{padding:7px 12px;font-size:13px;border-radius:9px}
   .btn.main{background:var(--brand);color:#fff}
   .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+  .btn.gold{background:var(--gold);color:#1c1405}
+  .btn.danger{background:transparent;border:1px solid var(--red);color:var(--red)}
   .btn:disabled{opacity:.6;cursor:wait}
   .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:10px 0 34px}
   .step{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
@@ -53,15 +60,20 @@
   .biz{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:8px}
   .biz .row{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
   .tag{font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;background:var(--brand-soft);color:var(--brand)}
+  .badge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px}
+  .badge.idok{background:var(--brand-soft);color:var(--brand)}
+  .badge.pending{background:var(--gold-soft);color:var(--gold)}
+  .badge.approved{background:var(--brand-soft);color:var(--brand)}
+  .badge.rejected{background:var(--red-soft);color:var(--red)}
   .stage{font-size:12px;color:var(--muted)}
   .biz h3{margin:0;font-size:20px;font-family:Fraunces,Georgia,serif}
   .biz .loc{font-size:13px;color:var(--muted)}
-  .biz p{margin:0;font-size:14px}
+  .biz p{margin:0;font-size:14px;white-space:pre-wrap}
   .ask{background:var(--gold-soft);border-radius:12px;padding:10px 12px;font-size:14px}
   .ask b{color:var(--gold);font-size:18px;font-family:Fraunces,Georgia,serif}
   .biz .contact{margin-top:auto;padding-top:6px;display:flex;gap:8px;flex-wrap:wrap}
-  .biz .contact a{font-size:14px}
-  .empty{background:var(--card);border:1px dashed var(--line);border-radius:18px;padding:34px 18px;text-align:center;color:var(--muted)}
+  .private{font-size:13px;background:var(--bg);border-radius:10px;padding:8px 10px}
+  .empty{background:var(--card);border:1px dashed var(--line);border-radius:18px;padding:34px 18px;text-align:center;color:var(--muted);grid-column:1/-1}
   .formcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px}
   .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media (max-width:640px){.fgrid{grid-template-columns:1fr}}
@@ -73,75 +85,131 @@
   .msg{margin-top:12px;font-size:15px;border-radius:12px;padding:12px 14px;display:none}
   .msg.ok{display:block;background:var(--brand-soft);color:var(--ink)}
   .msg.bad{display:block;background:var(--gold-soft);color:var(--ink)}
+  .gate{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px;text-align:center}
+  .gate p{color:var(--muted);margin:0 0 14px}
   .warn{background:var(--gold-soft);border:1px solid var(--gold);border-radius:14px;padding:14px 16px;font-size:14px}
   .warn h3{margin:0 0 6px;font-size:16px}
   .warn ul{margin:0;padding-left:20px}
-  .hp{position:absolute;left:-9999px}
+  .tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .tabs button{font:inherit;font-size:13px;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+  .tabs button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+  .modal .box{background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:420px;max-height:92vh;overflow:auto;position:relative}
+  .modal h2{font-size:26px;margin-bottom:4px}
+  .modal form{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+  .x{position:absolute;top:10px;right:12px;background:none;border:0;font-size:24px;color:var(--muted);cursor:pointer}
+  .linkbtn{background:none;border:0;padding:0;color:var(--brand);font:inherit;cursor:pointer;text-decoration:underline}
+  .hello{font-size:13px;color:var(--muted)}
+  .side{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .side > div{flex:1;min-width:220px}
+  .side .ico{font-size:34px;flex:0 0 auto;min-width:0}
+  .counts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .counts span{font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 10px}
   footer{padding:30px 0 50px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);margin-top:20px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><a href="/" style="font-weight:700;color:var(--ink)">🌱 Grow With Selorm</a><span><a href="/planner/">Money planner</a> &nbsp;·&nbsp; <a href="/about/">Meet Selorm</a> &nbsp;·&nbsp; <a href="#apply">Post your business</a></span></div>
+  <div class="top">
+    <a class="logo" href="/">🌱 Grow With Selorm</a>
+    <div class="nav">
+      <a href="/planner/">Money planner</a>
+      <a href="/about/">Meet Selorm</a>
+      <span id="navOut"><button class="btn sm ghost" data-auth="login">Log in</button> <button class="btn sm main" data-auth="signup">Join free</button></span>
+      <span id="navIn" hidden><span class="hello" id="hello"></span> <a href="#account">My account</a> <a href="#admin" id="navAdmin" hidden>Admin</a> <button class="btn sm ghost" id="logout">Log out</button></span>
+    </div>
+  </div>
+
+  <div class="msg bad" id="topMsg"></div>
 
   <header class="hero">
     <h1>Have a small business? <em>Get seen by investors.</em></h1>
-    <p>Post your business or idea for free. I read every one, and I may invest in the ones I believe in. Good businesses are shown here so other investors can find them too.</p>
+    <p>Join our free community of business owners in Ghana. Post your business, and I'll read every one. I may invest in the ones I believe in, and good businesses are shown here so other investors can find them too.</p>
     <a class="btn main" href="#apply">Post my business</a>
     <a class="btn ghost" href="#businesses">See businesses</a>
   </header>
 
   <div class="steps">
-    <div class="step"><b>1</b><h3>Tell us about it</h3><p>Fill in the short form. It takes about 5 minutes and it's free.</p></div>
-    <div class="step"><b>2</b><h3>We review it</h3><p>Selorm reads every business. Good ones are added to this page.</p></div>
-    <div class="step"><b>3</b><h3>Talk about investing</h3><p>If Selorm or another investor is interested, they contact you to talk.</p></div>
+    <div class="step"><b>1</b><h3>Join free</h3><p>Make an account with your email. It takes 1 minute.</p></div>
+    <div class="step"><b>2</b><h3>Post your business</h3><p>Fill in a short form. Selorm reviews every business before it is shown.</p></div>
+    <div class="step"><b>3</b><h3>Get your ID checked</h3><p>Show your Ghana Card in person or on a video call to get the ✅ badge.</p></div>
+    <div class="step"><b>4</b><h3>Talk about investing</h3><p>If Selorm or another investor is interested, they contact you.</p></div>
   </div>
 
   <section id="businesses">
     <h2>Businesses looking for investment</h2>
-    <p class="sub">Every business here was checked before it was shown.</p>
+    <p class="sub">Every business here was reviewed. Look for the ✅ badge: it means Selorm checked the owner's Ghana Card.</p>
     <div class="tools">
       <input id="q" type="search" placeholder="Search by name, town or what they do…" aria-label="Search businesses">
       <select id="cat" aria-label="Type of business"><option value="">All types</option></select>
     </div>
-    <div class="grid" id="list"></div>
+    <div class="grid" id="list"><div class="empty">Loading businesses…</div></div>
   </section>
 
   <section id="apply">
     <h2>Post your business</h2>
     <p class="sub">Answer in simple words. There are no wrong answers.</p>
-    <div class="formcard">
+    <div class="gate" id="applyGate">
+      <p>You need a free account to post your business, so you can follow it and change it later.</p>
+      <button class="btn main" data-auth="signup">Join free</button>
+      <button class="btn ghost" data-auth="login">I already have an account</button>
+    </div>
+    <div class="formcard" id="applyCard" hidden>
       <form id="form" novalidate>
-        <input class="hp" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="fgrid">
-          <label>Your full name<input name="Owner name" required maxlength="80"></label>
-          <label>Business name<input name="Business name" required maxlength="80"></label>
-          <label>Type of business
-            <select name="Type" id="fcat" required></select>
-          </label>
-          <label>Town / city<input name="Location" required maxlength="80" placeholder="e.g. Kumasi, Ho, Tema"></label>
+          <label>Your full name<input name="owner_name" required maxlength="80"></label>
+          <label>Business name<input name="name" required maxlength="80"></label>
+          <label>Type of business<select name="type" id="fcat" required></select></label>
+          <label>Town / city<input name="location" required maxlength="80" placeholder="e.g. Kumasi, Ho, Tema"></label>
           <label>How old is the business?
-            <select name="Stage" required>
+            <select name="stage" required>
               <option value="">Choose…</option>
-              <option>Just an idea</option>
-              <option>Less than 1 year</option>
-              <option>1 to 3 years</option>
-              <option>More than 3 years</option>
+              <option>Just an idea</option><option>Less than 1 year</option><option>1 to 3 years</option><option>More than 3 years</option>
             </select>
           </label>
-          <label>Money made each month <small>About how much in sales? Write 0 if not started.</small><input name="Monthly sales (GH₵)" type="number" min="0" step="1" required></label>
-          <label class="full">What does your business do? <small>What do you sell, and who buys it?</small><textarea name="What the business does" required maxlength="1200"></textarea></label>
-          <label>How much money do you need? (GH₵)<input name="Amount needed (GH₵)" type="number" min="1" step="1" required></label>
-          <label>What will the money be used for?<input name="Use of money" required maxlength="200" placeholder="e.g. buy a freezer, more stock"></label>
-          <label class="full">What will the investor get back? <small>For example: a share of profits, or paying back the money plus extra over 12 months.</small><textarea name="What the investor gets" required maxlength="800" style="min-height:70px"></textarea></label>
-          <label>WhatsApp / phone number<input name="Phone / WhatsApp" type="tel" required maxlength="30" placeholder="e.g. 024 123 4567"></label>
-          <label>Email <small>(optional)</small><input name="email" type="email" maxlength="100"></label>
-          <label class="check full"><input type="checkbox" name="Show phone publicly" value="Yes"> If my business is approved, you can show my WhatsApp number on this page so investors can call me.</label>
+          <label>Money made each month (GH₵) <small>About how much in sales? Write 0 if not started.</small><input name="monthly_sales" type="number" min="0" step="1" required></label>
+          <label class="full">What does your business do? <small>What do you sell, and who buys it?</small><textarea name="about" required maxlength="1500"></textarea></label>
+          <label>How much money do you need? (GH₵)<input name="amount" type="number" min="1" step="1" required></label>
+          <label>What will the money be used for?<input name="use_of_money" required maxlength="200" placeholder="e.g. buy a freezer, more stock"></label>
+          <label class="full">What will the investor get back? <small>For example: a share of profits, or paying back the money plus extra over 12 months.</small><textarea name="investor_gets" required maxlength="800" style="min-height:70px"></textarea></label>
+          <label>WhatsApp / phone number<input name="phone" type="tel" required maxlength="30" placeholder="e.g. 024 123 4567"></label>
+          <label>Full name on your Ghana Card <small>Only Selorm sees this. We never ask for a photo of your card.</small><input name="ghana_card_name" required maxlength="100"></label>
+          <label class="check full"><input type="checkbox" name="show_phone"> If my business is approved, you can show my WhatsApp number on this page so investors can call me.</label>
+          <label class="check full"><input type="checkbox" name="agree_id_check" required> I agree to show my Ghana Card to Selorm in person or on a video call before any investment.</label>
           <label class="check full"><input type="checkbox" id="agree" required> I confirm the information is true, and I agree that my business name, type, town, story and amount needed can be shown on this page if approved.</label>
         </div>
-        <div style="margin-top:16px"><button class="btn main" type="submit" id="send">Send my business</button></div>
+        <div style="margin-top:16px"><button class="btn main" type="submit" id="send">Post my business</button></div>
         <div class="msg" id="msg" role="status"></div>
       </form>
+    </div>
+  </section>
+
+  <section id="account" hidden>
+    <h2>My account</h2>
+    <p class="sub" id="acctSub"></p>
+    <div class="grid" id="mine"></div>
+  </section>
+
+  <section id="admin" hidden>
+    <h2>Admin: review businesses</h2>
+    <p class="sub">Only you can see this. Approve good businesses, and give the ✅ badge after you check the owner's Ghana Card.</p>
+    <div class="counts" id="counts"></div>
+    <div class="tabs" id="adminTabs">
+      <button data-f="pending" class="on">Waiting</button><button data-f="approved">Approved</button><button data-f="rejected">Rejected</button><button data-f="all">All</button>
+    </div>
+    <div class="grid" id="adminList"></div>
+  </section>
+
+  <section>
+    <div class="step side">
+      <div class="ico">👋</div>
+      <div><h3 style="margin:0 0 4px">Who runs this?</h3><p>I'm Selorm Yao Junior Ahiabor, an IT student from Ghana. I started Grow With Selorm to help small businesses find the money they need to grow.</p></div>
+      <a class="btn ghost" href="/about/">Meet Selorm →</a>
+    </div>
+    <div class="step side" style="margin-top:12px">
+      <div class="ico">📈</div>
+      <div><h3 style="margin:0 0 4px">Free tool: Future Money Planner</h3><p>Plan your savings, see how money can grow, and find out how much to save each month for a goal.</p></div>
+      <a class="btn ghost" href="/planner/">Open the planner →</a>
     </div>
   </section>
 
@@ -149,110 +217,283 @@
     <div class="warn">
       <h3>⚠️ Stay safe</h3>
       <ul>
-        <li>This page does <b>not</b> take or hold any money. No payment happens here.</li>
-        <li>We will <b>never</b> ask you to pay a fee to be listed.</li>
+        <li>This site does <b>not</b> take or hold any money. No payment happens here.</li>
+        <li>We will <b>never</b> ask you to pay a fee to join or be listed.</li>
+        <li>We will <b>never</b> ask for a photo of your Ghana Card or your passwords.</li>
         <li>Before any money moves, meet in person, check ID and the business, and sign a written agreement.</li>
         <li>Being listed here is not a promise that anyone will invest. Investing has risk, and money can be lost.</li>
       </ul>
     </div>
   </section>
 
-  <section>
-    <div class="step" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-      <div style="font-size:34px">👋</div>
-      <div style="flex:1;min-width:220px"><h3 style="margin:0 0 4px">Who runs this?</h3><p>I'm Selorm Yao Junior Ahiabor, an IT student from Ghana. I started Grow With Selorm to help small businesses find the money they need to grow.</p></div>
-      <a class="btn ghost" href="/about/">Meet Selorm →</a>
-    </div>
-    <div class="step" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:12px">
-      <div style="font-size:34px">📈</div>
-      <div style="flex:1;min-width:220px"><h3 style="margin:0 0 4px">Free tool: Future Money Planner</h3><p>Plan your savings, see how money can grow, and find out how much to save each month for a goal.</p></div>
-      <a class="btn ghost" href="/planner/">Open the planner →</a>
-    </div>
-  </section>
-
   <footer>Grow With Selorm is run by <a href="/about/">Selorm Yao Junior Ahiabor</a> · Ghana. This is not financial advice.</footer>
+</div>
+
+<!-- Log in / Join modal -->
+<div class="modal" id="authModal" hidden role="dialog" aria-modal="true" aria-labelledby="authTitle">
+  <div class="box">
+    <button class="x" id="authClose" aria-label="Close">×</button>
+    <h2 id="authTitle">Join free</h2>
+    <p class="sub" id="authSub" style="margin:0"></p>
+    <form id="authForm" novalidate>
+      <label id="nameRow">Your full name<input id="aName" maxlength="80" autocomplete="name"></label>
+      <label id="emailRow">Email<input id="aEmail" type="email" maxlength="120" autocomplete="email"></label>
+      <label id="passRow">Password <small id="passHint">At least 8 characters.</small><input id="aPass" type="password" minlength="8" autocomplete="current-password"></label>
+      <button class="btn main" type="submit" id="authBtn">Join free</button>
+      <div class="msg" id="authMsg" role="status" style="margin-top:0"></div>
+      <div style="font-size:14px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <button type="button" class="linkbtn" id="swap">I already have an account</button>
+        <button type="button" class="linkbtn" id="forgot">Forgot password?</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script>
 (function(){
-  // Where applications are sent. They arrive in Selorm's email inbox.
-  const FORM_ENDPOINT = 'https://formsubmit.co/ajax/selormmc85@gmail.com';
+  const SUPABASE_URL = 'https://jxwxdibeyrdkkuqikmgj.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_roZXn9Mp076MSzbOwrA9Hg_LNwJvpcR'; // public key, safe in a website
+  const ADMIN_EMAIL  = 'selormmc85@gmail.com';
+  const NOTIFY_URL   = 'https://formsubmit.co/ajax/selormmc85@gmail.com';
   const CATS = ['Food & drinks','Farming','Shop / trading','Fashion & beauty','Transport & delivery','Tech & phones','Education','Health','Building & repairs','Services','Other'];
+
   const $ = id => document.getElementById(id);
   const cedi = n => 'GH₵' + Math.round(+n||0).toLocaleString('en-US');
+  const ago = t => { const d=(Date.now()-new Date(t))/1000; if(d<3600) return Math.max(1,Math.floor(d/60))+' min ago'; if(d<86400) return Math.floor(d/3600)+' h ago'; return Math.floor(d/86400)+' days ago'; };
+  function el(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
+  function show(box, kind, text){ box.className='msg '+kind; box.textContent=text; }
+  function waLink(phone){ let d=String(phone||'').replace(/\D/g,''); if(d.startsWith('0')) d='233'+d.slice(1); return d.length>=9 ? 'https://wa.me/'+d : null; }
+  function notify(subject, fields){
+    try{ fetch(NOTIFY_URL,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(Object.assign({_subject:subject,_template:'table'},fields))}).catch(()=>{}); }catch(e){}
+  }
+
   $('cat').innerHTML += CATS.map(c=>'<option>'+c+'</option>').join('');
   $('fcat').innerHTML = '<option value="">Choose…</option>' + CATS.map(c=>'<option>'+c+'</option>').join('');
 
-  let all = [];
-  function el(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
-  function waLink(phone){
-    let d = String(phone||'').replace(/\D/g,'');
-    if(d.startsWith('0')) d = '233' + d.slice(1);
-    return d.length >= 9 ? 'https://wa.me/' + d : null;
-  }
+  let sb = null;
+  try{ sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }catch(e){}
+  if(!sb){ show($('topMsg'),'bad','The site could not connect right now. Please check your internet and refresh the page.'); }
 
-  function render(){
-    const q = $('q').value.trim().toLowerCase(), c = $('cat').value;
-    const list = all.filter(b => (!c || b.type===c) && (!q || [b.name,b.location,b.about,b.type].join(' ').toLowerCase().includes(q)));
-    const box = $('list'); box.innerHTML='';
-    if(!all.length){
-      const e=el('div','empty'); e.style.gridColumn='1/-1';
-      e.innerHTML='<b>No businesses yet.</b><br>The first approved businesses will show here soon. <a href="#apply">Be one of the first →</a>';
-      box.append(e); return;
+  let user = null, approved = [], adminRows = [], adminFilter = 'pending';
+  const isAdmin = () => !!user && (user.email||'').toLowerCase() === ADMIN_EMAIL;
+  const firstName = () => { const n=(user && user.user_metadata && user.user_metadata.full_name)||''; return n.split(' ')[0] || (user? user.email.split('@')[0] : ''); };
+
+  // ---------- public list ----------
+  function businessCard(b, opts){
+    opts = opts||{};
+    const card=el('article','biz');
+    const r=el('div','row'); r.append(el('span','tag',b.type||'Other'));
+    const right=el('span'); right.style.display='flex'; right.style.gap='6px'; right.style.alignItems='center';
+    if(opts.status) right.append(el('span','badge '+b.status, b.status==='pending'?'⏳ Waiting for review':b.status==='approved'?'✔ Approved':'✖ Not approved'));
+    if(b.id_checked) right.append(el('span','badge idok','✅ ID checked'));
+    if(!opts.status) right.append(el('span','stage',b.stage||''));
+    r.append(right); card.append(r);
+    card.append(el('h3',null,b.name), el('div','loc','📍 '+(b.location||'Ghana')+(b.owner_name?' · run by '+b.owner_name:'')));
+    card.append(el('p',null,b.about));
+    if(b.monthly_sales!=null) card.append(el('div','stage','Sales: about '+cedi(b.monthly_sales)+' a month · '+(b.stage||'')));
+    const ask=el('div','ask'); ask.append(el('div',null,'Needs'), el('b',null,cedi(b.amount)));
+    if(b.use_of_money) ask.append(el('div',null,'For: '+b.use_of_money));
+    if(b.investor_gets) ask.append(el('div',null,'Investor gets: '+b.investor_gets));
+    card.append(ask);
+    if(opts.private){
+      const p=el('div','private');
+      p.append(el('div',null,'📞 '+b.phone+(b.show_phone?' (can be shown)':' (private)')));
+      p.append(el('div',null,'🪪 Ghana Card name: '+b.ghana_card_name));
+      if(b.owner_email) p.append(el('div',null,'✉️ '+b.owner_email));
+      p.append(el('div','stage','Posted '+ago(b.created_at)));
+      card.append(p);
     }
-    if(!list.length){ const e=el('div','empty','No business matches your search.'); e.style.gridColumn='1/-1'; box.append(e); return; }
-    list.forEach(b=>{
-      const card=el('article','biz');
-      const r=el('div','row'); r.append(el('span','tag',b.type||'Other'), el('span','stage',b.stage||'')); card.append(r);
-      card.append(el('h3',null,b.name), el('div','loc','📍 '+(b.location||'Ghana')+(b.owner?' · run by '+b.owner:'')));
-      card.append(el('p',null,b.about));
-      if(b.monthlySales!=null && b.monthlySales!=='') card.append(el('div','stage','Sales: about '+cedi(b.monthlySales)+' a month'));
-      const ask=el('div','ask'); ask.append(el('div',null,'Needs'), el('b',null,cedi(b.amount)));
-      if(b.useOfMoney) ask.append(el('div',null,'For: '+b.useOfMoney));
-      if(b.investorGets) ask.append(el('div',null,'Investor gets: '+b.investorGets));
-      card.append(ask);
-      const ct=el('div','contact');
+    const ct=el('div','contact');
+    if(opts.actions) opts.actions(ct, b);
+    else {
       const wa = b.phone ? waLink(b.phone) : null;
-      if(wa){ const a=el('a','btn main','💬 WhatsApp '+(b.owner?b.owner.split(' ')[0]:'owner')); a.href=wa; a.target='_blank'; a.rel='noopener'; ct.append(a); }
-      else { const a=el('a','btn ghost','Ask Selorm about this'); a.href='mailto:selormmc85@gmail.com?subject='+encodeURIComponent('Interested in: '+b.name); ct.append(a); }
-      card.append(ct);
-      box.append(card);
-    });
-  }
-  $('q').addEventListener('input', render); $('cat').addEventListener('change', render);
-
-  fetch('businesses.json', {cache:'no-store'}).then(r=>r.ok?r.json():[]).then(d=>{ all = Array.isArray(d)?d:[]; render(); }).catch(()=>{ all=[]; render(); });
-
-  // ---- apply form ----
-  const form=$('form'), msg=$('msg'), send=$('send');
-  function show(kind, html){ msg.className='msg '+kind; msg.innerHTML=html; msg.scrollIntoView({behavior:'smooth',block:'nearest'}); }
-  form.addEventListener('submit', async e=>{
-    e.preventDefault();
-    if(!form.checkValidity() || !$('agree').checked){ form.reportValidity(); show('bad','Please fill in every box and tick the last check box.'); return; }
-    if(form._honey.value) return; // spam bot
-    const data = {};
-    new FormData(form).forEach((v,k)=>{ if(k!=='_honey') data[k]=v; });
-    if(!data['Show phone publicly']) data['Show phone publicly']='No';
-    data._subject = 'New business for investment: ' + data['Business name'];
-    data._template = 'table';
-    send.disabled=true; send.textContent='Sending…';
-    try{
-      const res = await fetch(FORM_ENDPOINT, {method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body:JSON.stringify(data)});
-      const out = await res.json().catch(()=>({}));
-      if(/activat/i.test(String(out.message||''))){
-        show('ok','✅ Sent. (Site owner: please check your email and tap <b>Activate Form</b> so future businesses arrive.)');
-        send.disabled=false; send.textContent='Send my business'; return;
-      }
-      if(!res.ok || String(out.success)==='false') throw new Error(out.message||'failed');
-      form.reset();
-      show('ok','✅ <b>Thank you!</b> Your business was sent. Selorm will read it and contact you if he is interested. If it is approved, it will show on this page.');
-    }catch(err){
-      const body = Object.entries(data).filter(([k])=>!k.startsWith('_')).map(([k,v])=>k+': '+v).join('\n');
-      const mail = 'mailto:selormmc85@gmail.com?subject='+encodeURIComponent(data._subject)+'&body='+encodeURIComponent(body);
-      show('bad','Sorry, it did not send. Please <a href="'+mail+'">tap here to send it by email</a> instead, or try again later.');
+      if(wa){ const a=el('a','btn main sm','💬 WhatsApp '+((b.owner_name||'owner').split(' ')[0])); a.href=wa; a.target='_blank'; a.rel='noopener'; ct.append(a); }
+      else { const a=el('a','btn ghost sm','Ask Selorm about this'); a.href='mailto:'+ADMIN_EMAIL+'?subject='+encodeURIComponent('Interested in: '+b.name); ct.append(a); }
     }
-    send.disabled=false; send.textContent='Send my business';
+    card.append(ct);
+    return card;
+  }
+
+  function renderList(){
+    const q=$('q').value.trim().toLowerCase(), c=$('cat').value, box=$('list');
+    box.innerHTML='';
+    const list=approved.filter(b=>(!c||b.type===c)&&(!q||[b.name,b.location,b.about,b.type].join(' ').toLowerCase().includes(q)));
+    if(!approved.length){ const e=el('div','empty'); e.innerHTML='<b>No businesses yet.</b><br>The first approved businesses will show here soon. <a href="#apply">Be one of the first →</a>'; box.append(e); return; }
+    if(!list.length){ box.append(el('div','empty','No business matches your search.')); return; }
+    list.forEach(b=>box.append(businessCard(b)));
+  }
+  $('q').addEventListener('input',renderList); $('cat').addEventListener('change',renderList);
+
+  async function loadApproved(){
+    if(!sb) { $('list').innerHTML=''; $('list').append(el('div','empty','Could not load businesses.')); return; }
+    const { data, error } = await sb.from('approved_businesses').select('*').order('created_at',{ascending:false});
+    if(error){ $('list').innerHTML=''; $('list').append(el('div','empty','Businesses could not load right now. Please try again later.')); return; }
+    approved = data||[]; renderList();
+  }
+
+  // ---------- auth ----------
+  let mode='signup';
+  function openAuth(m, note){
+    mode=m; $('authModal').hidden=false; $('authMsg').className='msg';
+    const t={signup:['Join free','Create your account to post your business.','Join free','I already have an account'],
+             login:['Log in','Welcome back!','Log in','I need a new account'],
+             forgot:['Reset password','We will email you a link to make a new password.','Send reset link','Back to log in'],
+             newpass:['Make a new password','Type your new password below.','Save new password','']}[m];
+    $('authTitle').textContent=t[0]; $('authSub').textContent=note||t[1]; $('authBtn').textContent=t[2]; $('swap').textContent=t[3];
+    $('nameRow').hidden = m!=='signup'; $('emailRow').hidden = m==='newpass'; $('passRow').hidden = m==='forgot';
+    $('forgot').hidden = m!=='login'; $('swap').hidden = m==='newpass';
+    $('aPass').autocomplete = (m==='signup'||m==='newpass')?'new-password':'current-password';
+    $('passHint').hidden = m==='login';
+    setTimeout(()=>{ const f = m==='signup'?$('aName'):m==='newpass'?$('aPass'):$('aEmail'); f.focus(); },50);
+  }
+  function closeAuth(){ $('authModal').hidden=true; $('aPass').value=''; }
+  document.querySelectorAll('[data-auth]').forEach(b=>b.addEventListener('click',()=>openAuth(b.dataset.auth)));
+  $('authClose').onclick=closeAuth;
+  $('authModal').addEventListener('click',e=>{ if(e.target.id==='authModal') closeAuth(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('authModal').hidden) closeAuth(); });
+  $('swap').onclick=()=>openAuth(mode==='signup'?'login':mode==='login'?'signup':'login');
+  $('forgot').onclick=()=>openAuth('forgot');
+
+  function friendly(err){
+    const m=String(err&&err.message||err||'');
+    if(/invalid login/i.test(m)) return 'Wrong email or password. Please try again.';
+    if(/not confirmed/i.test(m)) return 'Please confirm your email first. Check your inbox (and Spam) for our email.';
+    if(/already registered|already exists/i.test(m)) return 'This email already has an account. Tap "I already have an account" to log in.';
+    if(/rate limit|too many/i.test(m)) return 'Too many tries. Please wait a few minutes and try again.';
+    if(/password/i.test(m)) return 'Password must be at least 8 characters.';
+    return 'Something went wrong. Please try again. ('+m+')';
+  }
+
+  $('authForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    if(!sb){ show($('authMsg'),'bad','Cannot connect right now. Please refresh.'); return; }
+    const name=$('aName').value.trim(), email=$('aEmail').value.trim().toLowerCase(), pass=$('aPass').value;
+    const box=$('authMsg');
+    if(mode!=='newpass' && !/^\S+@\S+\.\S+$/.test(email)){ show(box,'bad','Please type a correct email.'); return; }
+    if(mode==='signup' && name.length<2){ show(box,'bad','Please type your full name.'); return; }
+    if(mode!=='forgot' && pass.length<8){ show(box,'bad','Password must be at least 8 characters.'); return; }
+    const btn=$('authBtn'); btn.disabled=true;
+    try{
+      if(mode==='signup'){
+        const { data, error } = await sb.auth.signUp({ email, password:pass, options:{ data:{ full_name:name }, emailRedirectTo: location.origin + '/' } });
+        if(error) throw error;
+        if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0) throw new Error('already registered');
+        notify('New member joined Grow With Selorm: '+name, { Name:name, Email:email, Time:new Date().toLocaleString() });
+        if(data.session){ closeAuth(); }
+        else show(box,'ok','✅ Almost done! We sent an email to '+email+'. Open it and tap the link to confirm your account, then log in. (Check Spam too.)');
+      } else if(mode==='login'){
+        const { error } = await sb.auth.signInWithPassword({ email, password:pass });
+        if(error) throw error;
+        closeAuth();
+      } else if(mode==='forgot'){
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/' });
+        if(error) throw error;
+        show(box,'ok','✅ If that email has an account, we sent a reset link. Check your inbox (and Spam).');
+      } else if(mode==='newpass'){
+        const { error } = await sb.auth.updateUser({ password:pass });
+        if(error) throw error;
+        show(box,'ok','✅ Your new password is saved. You are logged in.');
+        setTimeout(closeAuth,1500);
+      }
+    }catch(err){ show(box,'bad',friendly(err)); }
+    btn.disabled=false;
   });
+
+  $('logout').onclick=async()=>{ if(sb) await sb.auth.signOut(); location.hash=''; };
+
+  // ---------- post a business ----------
+  $('form').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const form=e.target, msg=$('msg'), send=$('send');
+    if(!user){ openAuth('login','Please log in first to post your business.'); return; }
+    if(!form.checkValidity() || !$('agree').checked){ form.reportValidity(); show(msg,'bad','Please fill in every box and tick the last two check boxes.'); return; }
+    const f=new FormData(form);
+    const row={
+      owner_name:f.get('owner_name').trim(), name:f.get('name').trim(), type:f.get('type'), location:f.get('location').trim(),
+      stage:f.get('stage'), monthly_sales:Math.max(0,Math.floor(+f.get('monthly_sales')||0)), about:f.get('about').trim(),
+      amount:Math.max(1,Math.floor(+f.get('amount')||0)), use_of_money:f.get('use_of_money').trim(), investor_gets:f.get('investor_gets').trim(),
+      phone:f.get('phone').trim(), ghana_card_name:f.get('ghana_card_name').trim(), show_phone:!!f.get('show_phone'), agree_id_check:!!f.get('agree_id_check')
+    };
+    send.disabled=true; send.textContent='Posting…';
+    const { error } = await sb.from('businesses').insert(row);
+    if(error){ show(msg,'bad','Sorry, it did not post. Please try again. ('+error.message+')'); }
+    else{
+      notify('New business posted: '+row.name, { 'Business':row.name, 'Owner':row.owner_name, 'Member email':user.email, 'Type':row.type, 'Town':row.location,
+        'Amount needed (GH₵)':row.amount, 'Phone':row.phone, 'Review it here':location.origin+'/#admin' });
+      form.reset();
+      show(msg,'ok','✅ Thank you! Your business was posted and is waiting for review. You can follow it in "My account".');
+      loadMine(); if(isAdmin()) loadAdmin();
+    }
+    send.disabled=false; send.textContent='Post my business';
+  });
+
+  // ---------- my account ----------
+  async function loadMine(){
+    if(!user||!sb) return;
+    $('acctSub').textContent='Logged in as '+user.email+'. Here are the businesses you posted.';
+    const box=$('mine');
+    const { data, error } = await sb.from('businesses').select('*').eq('owner',user.id).order('created_at',{ascending:false});
+    box.innerHTML='';
+    if(error){ box.append(el('div','empty','Could not load your businesses.')); return; }
+    if(!data.length){ const e=el('div','empty'); e.innerHTML='You have not posted a business yet. <a href="#apply">Post one now →</a>'; box.append(e); return; }
+    data.forEach(b=>box.append(businessCard(b,{status:true,private:true,actions:(ct,b)=>{
+      const d=el('button','btn danger sm','Delete'); d.onclick=()=>confirmDo(d,'Tap again to delete',async()=>{ await sb.from('businesses').delete().eq('id',b.id); loadMine(); loadApproved(); if(isAdmin()) loadAdmin(); }); ct.append(d);
+    }})));
+  }
+
+  function confirmDo(btn, text, fn){
+    if(btn.dataset.sure!=='1'){ btn.dataset.sure='1'; const old=btn.textContent; btn.textContent=text; setTimeout(()=>{ btn.dataset.sure=''; btn.textContent=old; },4000); return; }
+    btn.disabled=true; fn();
+  }
+
+  // ---------- admin ----------
+  async function loadAdmin(){
+    if(!isAdmin()) return;
+    const { data, error } = await sb.from('businesses').select('*').order('created_at',{ascending:false});
+    if(error){ $('adminList').innerHTML=''; $('adminList').append(el('div','empty','Could not load. ('+error.message+')')); return; }
+    adminRows=data||[]; renderAdmin();
+  }
+  function renderAdmin(){
+    const n=s=>adminRows.filter(b=>b.status===s).length;
+    $('counts').innerHTML='';
+    [['⏳ Waiting',n('pending')],['✔ Approved',n('approved')],['✖ Rejected',n('rejected')],['✅ ID checked',adminRows.filter(b=>b.id_checked).length]].forEach(([t,v])=>$('counts').append(el('span',null,t+': '+v)));
+    document.querySelectorAll('#adminTabs button').forEach(b=>b.classList.toggle('on',b.dataset.f===adminFilter));
+    const list=adminRows.filter(b=>adminFilter==='all'||b.status===adminFilter), box=$('adminList');
+    box.innerHTML='';
+    if(!list.length){ box.append(el('div','empty','Nothing here.')); return; }
+    list.forEach(b=>box.append(businessCard(b,{status:true,private:true,actions:(ct,b)=>{
+      const set=async(patch)=>{ const { error } = await sb.from('businesses').update(patch).eq('id',b.id); if(error) alertBox(error.message); await loadAdmin(); loadApproved(); };
+      if(b.status!=='approved'){ const a=el('button','btn main sm','✔ Approve'); a.onclick=()=>{a.disabled=true; set({status:'approved'});}; ct.append(a); }
+      if(b.status!=='rejected'){ const r=el('button','btn ghost sm','✖ Reject'); r.onclick=()=>{r.disabled=true; set({status:'rejected'});}; ct.append(r); }
+      const i=el('button','btn gold sm', b.id_checked?'Remove ✅ badge':'Mark ✅ ID checked'); i.onclick=()=>{i.disabled=true; set({id_checked:!b.id_checked});}; ct.append(i);
+      const wa=waLink(b.phone); if(wa){ const w=el('a','btn ghost sm','💬 WhatsApp'); w.href=wa; w.target='_blank'; w.rel='noopener'; ct.append(w); }
+      const d=el('button','btn danger sm','Delete'); d.onclick=()=>confirmDo(d,'Tap again to delete',async()=>{ await sb.from('businesses').delete().eq('id',b.id); loadAdmin(); loadApproved(); }); ct.append(d);
+    }})));
+  }
+  function alertBox(t){ show($('topMsg'),'bad','Could not save: '+t); setTimeout(()=>{$('topMsg').className='msg';},6000); }
+  document.querySelectorAll('#adminTabs button').forEach(b=>b.onclick=()=>{ adminFilter=b.dataset.f; renderAdmin(); });
+
+  // ---------- react to login state ----------
+  function applyUser(u){
+    user=u||null;
+    $('navOut').hidden=!!user; $('navIn').hidden=!user;
+    $('applyGate').hidden=!!user; $('applyCard').hidden=!user;
+    $('account').hidden=!user; $('admin').hidden=!isAdmin(); $('navAdmin').hidden=!isAdmin();
+    if(user){
+      $('hello').textContent='Hi, '+firstName()+' 👋';
+      const nm=$('form').elements['owner_name']; if(!nm.value && user.user_metadata && user.user_metadata.full_name) nm.value=user.user_metadata.full_name;
+      loadMine(); loadAdmin();
+    }
+  }
+
+  if(sb){
+    sb.auth.onAuthStateChange((event, session)=>{
+      applyUser(session && session.user);
+      if(event==='PASSWORD_RECOVERY') openAuth('newpass');
+    });
+    sb.auth.getSession().then(({data})=>applyUser(data.session && data.session.user));
+    loadApproved();
+  } else { applyUser(null); renderList(); }
 })();
 </script>
 </body>
