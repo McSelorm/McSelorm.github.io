@@ -226,6 +226,10 @@
     try{
       const res = await fetch(FORM_ENDPOINT, {method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body:JSON.stringify(data)});
       const out = await res.json().catch(()=>({}));
+      if(/activat/i.test(String(out.message||''))){
+        show('ok','✅ Sent. (Site owner: please check your email and tap <b>Activate Form</b> so future businesses arrive.)');
+        send.disabled=false; send.textContent='Send my business'; return;
+      }
       if(!res.ok || String(out.success)==='false') throw new Error(out.message||'failed');
       form.reset();
       show('ok','✅ <b>Thank you!</b> Your business was sent. Selorm will read it and contact you if he is interested. If it is approved, it will show on this page.');
